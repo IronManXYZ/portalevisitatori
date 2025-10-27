@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3e1c 0%, #2b9d3a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            margin: 20px;
+        }
+
+        .screen {
+            display: none;
+            text-align: center;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        h2 {
+            color: #555;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            font-weight: 400;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #1e3e1c 0%, #2b9d3a 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .visitor-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .wifi-box {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .management-container {
+            max-width: 1200px;
+            width: 95%;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .logs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .logs-table th,
+        .logs-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+            white-space: nowrap;
+        }
+
+        .logs-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .status-active {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .status-completed {
+            color: #6c757d;
+        }
+
+        .error {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .success {
+            color: #28a745;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .nav-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Stili per la schermata di login management */
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            margin: 20px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h2 {
+            color: #333;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(0,0,0,0.1);
+            color: #333;
+        }
+
+        .code-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .code-available {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .code-in-use {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        @media (max-width: 768px) {
+            .management-container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .logs-table th,
+            .logs-table td {
+                padding: 8px 4px;
+                font-size: 12px;
+            }
+            
+            .btn {
+                padding: 10px 15px;
+                font-size: 14px;
+                margin: 5px;
+            }
+            
+            .nav-btn {
+                top: 10px;
+                right: 10px;
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logs-table th,
+            .logs-table td {
+                padding: 6px 2px;
+                font-size: 10px;
+            }
+            
+            .management-container h2 {
+                font-size: 1.4em;
+            }
+
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="nav-btn" onclick="showManagementLogin()" id="managementNavBtn">🔧 Management</button>
+
+    <div class="container" id="userContainer">
+        <!-- Schermata 1: Benvenuto -->
+        <div class="screen active" id="welcome-screen">
+            <h1>Benvenuto</h1>
+            <div class="input-group">
+                <label for="visitor-code">Inserisci il codice:</label>
+                <input type="text" id="visitor-code" placeholder="Codice numerico" pattern="[0-9]*" inputmode="numeric">
+                <div class="error" id="code-error"></div>
+                <div class="success" id="code-success"></div>
+            </div>
+            <button class="btn" onclick="checkCode()" id="check-btn">Continua</button>
+        </div>
+
+        <!-- Schermata 2: Registrazione -->
+        <div class="screen" id="registration-screen">
+            <h2>Registrazione Visitatore</h2>
+            <form id="registration-form">
+                <div class="input-group">
+                    <label for="first-name">Nome *</label>
+                    <input type="text" id="first-name" required>
+                </div>
+                <div class="input-group">
+                    <label for="last-name">Cognome *</label>
+                    <input type="text" id="last-name" required>
+                </div>
+                <div class="input-group">
+                    <label for="company">Azienda *</label>
+                    <input type="text" id="company" required>
+                </div>
+                <div class="input-group">
+                    <label for="meeting-person">Persona da incontrare *</label>
+                    <select id="meeting-person" required>
+                        <option value="">Seleziona...</option>
+                        <option value="Alessio Pivato">Alessio Pivato</option>
+                        <option value="Alessio Zanette">Alessio Zanette</option>
+                        <option value="Andrea Barbon">Andrea Barbon</option>
+                        <option value="Diego Visentin">Diego Visentin</option>
+                        <option value="Eddy Condotta">Eddy Condotta</option>
+                        <option value="Federica Minello">Federica Minello</option>
+                        <option value="Filippo Giubbetto">Filippo Giubbetto</option>
+                        <option value="Giacomo Miglioranza">Giacomo Miglioranza</option>
+                        <option value="Luca Bettiol">Luca Bettiol</option>
+                        <option value="Marica Basso">Marica Basso</option>
+                        <option value="Monica Guglielmini">Monica Guglielmini</option>
+                        <option value="Riccardo Milani">Riccardo Milani</option>
+                        <option value="Stefano Risatti">Stefano Risatti</option>
+                    </select>
+                </div>
+                <div class="error" id="registration-error"></div>
+                <button type="submit" class="btn" id="register-btn">Conferma Registrazione</button>
+                <button type="button" class="btn" onclick="goBack()">Indietro</button>
+            </form>
+        </div>
+
+        <!-- Schermata 3: Informazioni Visitatore -->
+        <div class="screen" id="visitor-info-screen">
+            <h2>Informazioni Visita</h2>
+            <div class="visitor-info" id="visitor-details">
+                <!-- Dettagli visitatore verranno inseriti qui -->
+            </div>
+            <div class="wifi-box">
+                <h3>🔐 H-Syde Guest</h3>
+                <p><strong>Username:</strong> <span id="wifi-username"></span></p>
+                <p><strong>Password:</strong> <span id="wifi-password"></span></p>
+            </div>
+
+            <button class="btn btn-danger" onclick="endVisit()" id="end-visit-btn">Termina Visita</button>
+            <button class="btn" onclick="goToWelcome()">Esci</button>
+        </div>
+    </div>
+
+    <!-- Schermata Login Management -->
+    <div class="login-container" id="loginContainer" style="display: none; position: relative;">
+        <div class="login-header">
+            <h2>🔐 Accesso Management</h2>
+            <p>Area riservata al personale autorizzato</p>
+        </div>
+        <form id="login-form">
+            <div class="input-group">
+                <label for="login-email">Email:</label>
+                <input type="email" id="login-email" required>
+            </div>
+            <div class="input-group">
+                <label for="login-password">Password:</label>
+                <input type="password" id="login-password" required>
+            </div>
+            <div class="error" id="login-error"></div>
+            <button type="submit" class="btn" id="login-btn">Accedi</button>
+            <button type="button" class="btn" onclick="hideManagementLogin()">Indietro</button>
+        </form>
+    </div>
+
+    <!-- Schermata Management -->
+    <div class="container management-container" id="managementContainer" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2>🔧 Management - Sistema Visitatori</h2>
+            <button class="btn" onclick="logout()" style="margin: 0;">Logout</button>
+        </div>
+        
+        <!-- Statistiche -->
+        <div class="stats-container" id="stats-container">
+            <!-- Le statistiche verranno caricate qui -->
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <button class="btn" onclick="refreshLogs()">🔄 Aggiorna</button>
+            <button class="btn" onclick="exportCSV()">📊 Esporta CSV</button>
+            <button class="btn" onclick="createBackup()">💾 Backup</button>
+        </div>
+        
+        <div class="table-container">
+            <table class="logs-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Codice</th>
+                        <th>Nome</th>
+                        <th>Cognome</th>
+                        <th>Azienda</th>
+                        <th>Incontra</th>
+                        <th>Entrata</th>
+                        <th>Uscita</th>
+                        <th>Stato</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody id="logs-table-body">
+                    <!-- I log verranno inseriti qui -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Configurazione API
+        const API_BASE = window.location.origin + '/api';
+        
+        // Stato di autenticazione
+        let isAuthenticated = false;
+        
+        // Utility per chiamate API
+        async function apiCall(endpoint, options = {}) {
+            try {
+                const headers = {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                };
+
+                // Per ora manteniamo la struttura per future implementazioni server
+                const authToken = localStorage.getItem('management_token');
+                if (authToken) {
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                }
+
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    headers,
+                    ...options
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Errore API:', error);
+                throw error;
+            }
+        }
+
+        let currentCode = '';
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function showLoading(buttonId) {
+            const btn = document.getElementById(buttonId);
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>' + btn.textContent;
+        }
+
+        function hideLoading(buttonId, originalText) {
+            const btn = document.getElementById(buttonId);
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+
+        async function checkCode() {
+            const code = document.getElementById('visitor-code').value.trim();
+            const errorElement = document.getElementById('code-error');
+            const successElement = document.getElementById('code-success');
+            
+            errorElement.textContent = '';
+            successElement.textContent = '';
+            
+            if (!code) {
+                errorElement.textContent = 'Inserisci un codice valido';
+                return;
+            }
+
+            if (!/^\d+$/.test(code)) {
+                errorElement.textContent = 'Il codice deve contenere solo numeri';
+                return;
+            }
+
+            currentCode = code;
+            showLoading('check-btn');
+
+            try {
+                const result = await apiCall(`/visitors/check/${code}`);
+                
+                if (result.exists) {
+                    const visitor = result.visitor;
+                    if (visitor.status === 'active') {
+                        showVisitorInfo(visitor);
+                        showScreen('visitor-info-screen');
+                    } else {
+                        // Il codice esiste ma è stato usato e la visita è terminata
+                        // Ora il codice può essere riutilizzato per una nuova registrazione
+                        //successElement.textContent = 'Codice riutilizzabile - procedi con la registrazione';
+                        setTimeout(() => {
+                            showScreen('registration-screen');
+                        }, 0);
+                    }
+                } else {
+                    // Codice nuovo, procedi con la registrazione
+                    showScreen('registration-screen');
+                }
+            } catch (error) {
+                errorElement.textContent = 'Errore di connessione. Riprova.';
+            } finally {
+                hideLoading('check-btn', 'Continua');
+            }
+        }
+
+        function goBack() {
+            document.getElementById('visitor-code').value = '';
+            showScreen('welcome-screen');
+        }
+
+        function goToWelcome() {
+            document.getElementById('visitor-code').value = '';
+            currentCode = '';
+            showScreen('welcome-screen');
+        }
+
+        document.getElementById('registration-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const firstName = document.getElementById('first-name').value.trim();
+            const lastName = document.getElementById('last-name').value.trim();
+            const company = document.getElementById('company').value.trim();
+            const meetingPerson = document.getElementById('meeting-person').value;
+            const errorElement = document.getElementById('registration-error');
+
+            errorElement.textContent = '';
+
+            if (!firstName || !lastName || !company || !meetingPerson) {
+                errorElement.textContent = 'Compila tutti i campi obbligatori';
+                return;
+            }
+
+            const visitorData = {
+                code: currentCode,
+                firstName,
+                lastName,
+                company,
+                meetingPerson,
+                forceReuse: true // Flag per indicare il riutilizzo del codice
+            };
+
+            showLoading('register-btn');
+
+            try {
+                // Prova prima la registrazione normale
+                let result;
+                try {
+                    result = await apiCall('/visitors/register', {
+                        method: 'POST',
+                        body: JSON.stringify(visitorData)
+                    });
+                } catch (error) {
+                    // Se fallisce, prova con l'endpoint di riutilizzo
+                    if (error.message.includes('già utilizzato') || error.message.includes('exists')) {
+                        result = await apiCall('/visitors/reuse', {
+                            method: 'POST',
+                            body: JSON.stringify(visitorData)
+                        });
+                    } else {
+                        throw error;
+                    }
+                }
+
+                showVisitorInfo(result);
+                showScreen('visitor-info-screen');
+                this.reset();
+            } catch (error) {
+                errorElement.textContent = error.message || 'Errore durante la registrazione';
+            } finally {
+                hideLoading('register-btn', 'Conferma Registrazione');
+            }
+        });
+        
+        async function loadFilteredVisitors() {
+            // 1. estrai dai DOM i valori già presenti
+            const firstName = document.getElementById('v-name').textContent;
+            const lastName  = document.getElementById('v-last').textContent;
+            const company   = document.getElementById('v-company').textContent;
+
+            // 2. costruisci query string
+            const qs = [
+                `firstName=${encodeURIComponent(firstName)}`,
+                `lastName=${encodeURIComponent(lastName)}`,
+                `company=${encodeURIComponent(company)}`
+            ].join('&');
+
+            // 3. chiama l’endpoint filtrato
+            try {
+                const res = await fetch(`/api/visitors/all?${qs}`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const visitors = await res.json();
+
+                // 4. stampa i risultati in tabella
+                const tbody = document.getElementById('logs-table-body');
+                tbody.innerHTML = ''; 
+                visitors.forEach(v => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${v.id}</td>
+                    <td>${v.code}</td>
+                    <td>${v.firstName}</td>
+                    <td>${v.lastName}</td>
+                    <td>${v.company}</td>
+                    <td>${v.meetingPerson}</td>
+                    <td>${new Date(v.entryTime).toLocaleString('it-IT')}</td>
+                    <td>${v.exitTime ? new Date(v.exitTime).toLocaleString('it-IT') : '-'}</td>
+                    <td>${v.status}</td>
+                `;
+                tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error('Errore caricamento filtrato:', e);
+            }
+            }
+
+        /*function showVisitorInfo(visitor) {
+            const detailsDiv = document.getElementById('visitor-details');
+            const entryTime = new Date(visitor.entryTime).toLocaleString('it-IT');
+
+            // popolo i campi
+            detailsDiv.innerHTML = `
+                <div class="info-row">
+                <span><strong>Codice:</strong></span>
+                <span id="v-code">${visitor.code}</span>
+                </div>
+                <div class="info-row">
+                <span><strong>Nome:</strong></span>
+                <span id="v-name">${visitor.firstName}</span>
+                </div>
+                <div class="info-row">
+                <span><strong>Cognome:</strong></span>
+                <span id="v-last">${visitor.lastName}</span>
+                </div>
+                <div class="info-row">
+                <span><strong>Azienda:</strong></span>
+                <span id="v-company">${visitor.company}</span>
+                </div>
+                <div class="info-row">
+                <span><strong>Orario Entrata:</strong></span>
+                <span>${entryTime}</span>
+                </div>
+            `;
+
+            // appena mostri i dati, lancia il filtro
+            loadGuestPassword();
+            }
+        */
+        
+        function showVisitorInfo(visitor) {
+            const detailsDiv = document.getElementById('visitor-details');
+            const entryTime = new Date(visitor.entryTime).toLocaleString('it-IT');
+
+            detailsDiv.innerHTML = `
+                <div class="info-row">
+                <span><strong>Codice:</strong></span>
+                <span>${visitor.code}</span>
+                </div>
+                <div class="info-row">
+                <span><strong>Nome:</strong></span>
+                <span>${visitor.firstName}</span>
+                </div>
+                <div class="info-row">
+                <span><strong>Cognome:</strong></span>
+                <span>${visitor.lastName}</span>
+                </div>
+                <div class="info-row">
+                <span><strong>Azienda:</strong></span>
+                <span>${visitor.company}</span>
+                </div>
+                <div class="info-row">
+                <span><strong>Orario Entrata:</strong></span>
+                <span>${entryTime}</span>
+                </div>
+            `;
+
+            // Mostra la password FortiGate appena restituita
+            const pwd = visitor.fgt_password || '—';
+            const utente = (visitor.firstName + "."+visitor.lastName )|| '—';
+            document.getElementById('wifi-password').textContent = pwd;
+            document.getElementById('wifi-username').textContent = utente.toLocaleLowerCase();
+
+            showScreen('visitor-info-screen');
+        }   
+
+
+
+        async function endVisit() {
+            if (!currentCode) return;
+            
+            if (!confirm('Sei sicuro di voler terminare la visita?')) return;
+
+            showLoading('end-visit-btn');
+
+            try {
+                await apiCall(`/visitors/end/${currentCode}`, {
+                    method: 'PUT'
+                });
+
+                alert('Visita terminata con successo. Il codice è ora disponibile per un nuovo visitatore. Arrivederci!');
+                goToWelcome();
+            } catch (error) {
+                alert('Errore durante la terminazione: ' + error.message);
+            } finally {
+                hideLoading('end-visit-btn', 'Termina Visita');
+            }
+        }
+
+        // Funzioni per il login Management
+        function showManagementLogin() {
+            document.getElementById('userContainer').style.display = 'none';
+            document.getElementById('managementContainer').style.display = 'none';
+            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('managementNavBtn').style.display = 'none';
+        }
+
+        function hideManagementLogin() {
+            document.getElementById('userContainer').style.display = 'block';
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('managementContainer').style.display = 'none';
+            document.getElementById('managementNavBtn').style.display = 'block';
+            
+            // Reset del form di login
+            document.getElementById('login-form').reset();
+            document.getElementById('login-error').textContent = '';
+        }
+
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            const errorElement = document.getElementById('login-error');
+
+            errorElement.textContent = '';
+
+            if (!email || !password) {
+                errorElement.textContent = 'Inserisci email e password';
+                return;
+            }
+
+            showLoading('login-btn');
+
+            try {
+                // 1. Chiama la nostra nuova API di backend
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, password: password })
+                });
+
+                if (!response.ok) {
+                    // 2. Errore (es. 401 - password errata)
+                    throw new Error('Email o password non corretti');
+                }
+
+                // 3. Successo!
+                const data = await response.json(); // { token: "..." }
+
+                // 4. Salva il VERO token JWT ricevuto dal server
+                localStorage.setItem('management_token', data.token); 
+                localStorage.setItem('login_time', Date.now().toString());
+                isAuthenticated = true;
+
+                // Mostra il pannello management
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('managementContainer').style.display = 'block';
+                document.getElementById('managementNavBtn').style.display = 'none';
+                
+                refreshStats();
+                refreshLogs();
+                
+                this.reset();
+
+            } catch (error) {
+                errorElement.textContent = error.message || 'Errore di connessione';
+            } finally {
+                hideLoading('login-btn', 'Accedi');
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem('management_token');
+            localStorage.removeItem('login_time');
+            isAuthenticated = false;
+            
+            document.getElementById('managementContainer').style.display = 'none';
+            document.getElementById('userContainer').style.display = 'block';
+            document.getElementById('managementNavBtn').style.display = 'block';
+            
+            // Reset degli stati
+            showScreen('welcome-screen');
+            currentCode = '';
+        }
+
+        async function refreshStats() {
+            if (!isAuthenticated) return;
+            
+            try {
+                const stats = await apiCall('/stats');
+                const container = document.getElementById('stats-container');
+                
+                container.innerHTML = `
+                    <div class="stat-card">
+                        <h3>${stats.total || 0}</h3>
+                        <p>Visitatori Totali</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${stats.active || 0}</h3>
+                        <p>Attualmente Presenti</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${stats.today || 0}</h3>
+                        <p>Oggi</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${stats.thisWeek || 0}</h3>
+                        <p>Questa Settimana</p>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Errore caricamento statistiche:', error);
+                if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+                    logout();
+                }
+            }
+        }
+
+        async function refreshLogs() {
+            if (!isAuthenticated) return;
+            
+            try {
+                const visitors = await apiCall('/visitors/all');
+                const tbody = document.getElementById('logs-table-body');
+                
+                tbody.innerHTML = '';
+                
+                visitors.forEach(visitor => {
+                    const row = tbody.insertRow();
+                    const entryTime = new Date(visitor.entryTime).toLocaleString('it-IT');
+                    const exitTime = visitor.exitTime ? new Date(visitor.exitTime).toLocaleString('it-IT') : '-';
+                    const statusClass = visitor.status === 'active' ? 'status-active' : 'status-completed';
+                    const statusText = visitor.status === 'active' ? 'Attivo' : 'Completato';
+                    
+                    // Stato del codice
+                    const codeStatusClass = visitor.status === 'active' ? 'code-in-use' : 'code-available';
+                    const codeStatusText = visitor.status === 'active' ? 'In uso' : 'Disponibile';
+                    
+                    row.innerHTML = `
+                        <td>${visitor.id}</td>
+                        <td>
+                            ${visitor.code}
+                            <span class="code-status ${codeStatusClass}">${codeStatusText}</span>
+                        </td>
+                        <td>${visitor.firstName}</td>
+                        <td>${visitor.lastName}</td>
+                        <td>${visitor.company}</td>
+                        <td>${visitor.meetingPerson}</td>
+                        <td>${entryTime}</td>
+                        <td>${exitTime}</td>
+                        <td class="${statusClass}">${statusText}</td>
+                        <td>
+                            ${visitor.status === 'active' ? 
+                                `<button class="btn btn-danger" onclick="forceEndVisit('${visitor.code}')">Termina</button>` : 
+                                '-'
+                            }
+                        </td>
+                    `;
+                });
+            } catch (error) {
+                console.error('Errore caricamento log:', error);
+                const tbody = document.getElementById('logs-table-body');
+                tbody.innerHTML = '<tr><td colspan="10">Errore caricamento dati</td></tr>';
+                
+                if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+                    logout();
+                }
+            }
+        }
+
+        async function forceEndVisit(code) {
+            if (!confirm('Sei sicuro di voler terminare questa visita?')) return;
+
+            try {
+                await apiCall(`/visitors/force-end/${code}`, {
+                    method: 'PUT'
+                });
+
+                alert('Visita terminata dal management. Il codice è ora disponibile per un nuovo visitatore.');
+                refreshStats();
+                refreshLogs();
+            } catch (error) {
+                alert('Errore: ' + error.message);
+                if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+                    logout();
+                }
+            }
+        }
+
+        async function exportCSV() {
+            if (!isAuthenticated) return;
+            
+            try {
+                const authToken = localStorage.getItem('management_token');
+                const response = await fetch(`${API_BASE}/visitors/export/csv`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Errore durante l\'esportazione');
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `visitor_logs_${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            } catch (error) {
+                alert('Errore esportazione: ' + error.message);
+                if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+                    logout();
+                }
+            }
+        }
+
+        async function createBackup() {
+            if (!isAuthenticated) return;
+            
+            try {
+                const result = await apiCall('/backup');
+                alert(result.message);
+            } catch (error) {
+                alert('Errore backup: ' + error.message);
+                if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+                    logout();
+                }
+            }
+        }
+
+        // Verifica autenticazione al caricamento della pagina
+        function checkAuthentication() {
+            const authToken = localStorage.getItem('management_token');
+            
+            if (authToken) {
+                isAuthenticated = true;
+            } else {
+                isAuthenticated = false;
+            }
+        }
+
+        // Inizializzazione
+        document.addEventListener('DOMContentLoaded', function() {
+            showScreen('welcome-screen');
+            checkAuthentication();
+        });
+
+        // Auto-refresh per management ogni 30 secondi (solo se autenticato)
+        setInterval(() => {
+            const managementContainer = document.getElementById('managementContainer');
+            if (managementContainer.style.display !== 'none' && isAuthenticated) {
+                refreshStats();
+                refreshLogs();
+            }
+        }, 30000);
+
+        // Gestione dei tasti Enter
+        document.getElementById('visitor-code').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkCode();
+            }
+        });
+
+        document.getElementById('login-email').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('login-password').focus();
+            }
+        });
+
+        document.getElementById('login-password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('login-form').dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html>
